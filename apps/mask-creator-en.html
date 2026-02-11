@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taillight Mask Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: #2a2a3e;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .upload-section input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #4a90e2;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #357abd;
+        }
+
+        .workspace {
+            display: none;
+            background: #2a2a3e;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .workspace.active {
+            display: block;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 3px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #photoCanvas, #drawCanvas, #maskCanvas {
+            display: block;
+        }
+
+        #drawCanvas, #maskCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #drawCanvas {
+            cursor: crosshair;
+        }
+
+        .controls {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .tool-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #444;
+            background: #2a2a3e;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .tool-btn:hover {
+            background: #3a3a4e;
+        }
+
+        .tool-btn.active {
+            background: #4a90e2;
+            border-color: #4a90e2;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #e68900;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn-download {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #7b1fa2;
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .mode-indicator {
+            background: #1e1e2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mode-indicator h3 {
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .mode-indicator p {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .preview-controls {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .instructions {
+            background: #2a2a3e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .instructions h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .cursor-preview {
+            position: fixed;
+            pointer-events: none;
+            border: 2px solid #ffd700;
+            border-radius: 50%;
+            opacity: 0.5;
+            display: none;
+            z-index: 1000;
+        }
+
+        .status-message {
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-info {
+            background: #2196F3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Taillight Mask Creator</h1>
+            <p class="subtitle">Create a mask for the Taillight Challenge</p>
+        </header>
+
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Upload a photo of a car (preferably rear view with clearly visible taillights)</li>
+                <li>Use the <strong>Brush Tool</strong> to draw over the taillights (black)</li>
+                <li>Use the <strong>Eraser</strong> to correct any mistakes</li>
+                <li>Click <strong>"Create Mask"</strong> to generate the mask</li>
+                <li>Check the mask using the opacity slider</li>
+                <li>Download the mask or go back to make adjustments</li>
+            </ol>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <label for="photoUpload" class="upload-btn">
+                📁 Choose a Photo
+            </label>
+            <input type="file" id="photoUpload" accept="image/*">
+            <div id="uploadStatus"></div>
+        </div>
+
+        <!-- Drawing Workspace -->
+        <div class="workspace" id="drawingWorkspace">
+            <div class="mode-indicator">
+                <h3>🎨 Drawing Mode</h3>
+                <p>Draw over the car's taillights</p>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="photoCanvas"></canvas>
+                    <canvas id="drawCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="tool-buttons">
+                    <button class="tool-btn active" id="brushBtn" onclick="selectTool('brush')">
+                        🖌️ Brush Tool
+                    </button>
+                    <button class="tool-btn" id="eraserBtn" onclick="selectTool('eraser')">
+                        🧽 Eraser
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <label for="brushSize">Tool Size:</label>
+                    <div class="slider-container">
+                        <input type="range" id="brushSize" min="5" max="100" value="20">
+                        <span class="slider-value" id="brushSizeValue">20px</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="clearDrawing()">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn btn-primary" onclick="createMask()">
+                        ✨ Create Mask
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Workspace -->
+        <div class="workspace" id="previewWorkspace">
+            <div class="mode-indicator">
+                <h3>👁️ Preview Mode</h3>
+                <p>Check if the mask is correct</p>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="photoCanvas2"></canvas>
+                    <canvas id="maskCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="preview-controls">
+                <div class="control-group">
+                    <label for="maskOpacity">Mask Transparency:</label>
+                    <div class="slider-container">
+                        <input type="range" id="maskOpacity" min="0" max="100" value="100">
+                        <span class="slider-value" id="maskOpacityValue">100%</span>
+                    </div>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px;">
+                        Slide to 0% to see the full photo (check cutout)
+                    </p>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="backToDrawing()">
+                        ← Back to Drawing
+                    </button>
+                    <button class="btn btn-download" onclick="downloadMask()">
+                        💾 Download Mask
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cursor Preview -->
+    <div class="cursor-preview" id="cursorPreview"></div>
+
+    <script>
+        // Application state
+        let photoLoaded = false;
+        let currentTool = 'brush';
+        let brushSize = 20;
+        let isDrawing = false;
+        let originalFileName = '';
+        let maskImageData = null;
+
+        // Canvas elements
+        const photoCanvas = document.getElementById('photoCanvas');
+        const photoCtx = photoCanvas.getContext('2d');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const drawCtx = drawCanvas.getContext('2d');
+        const photoCanvas2 = document.getElementById('photoCanvas2');
+        const photoCtx2 = photoCanvas2.getContext('2d');
+        const maskCanvas = document.getElementById('maskCanvas');
+        const maskCtx = maskCanvas.getContext('2d');
+
+        // UI elements
+        const photoUpload = document.getElementById('photoUpload');
+        const uploadSection = document.getElementById('uploadSection');
+        const drawingWorkspace = document.getElementById('drawingWorkspace');
+        const previewWorkspace = document.getElementById('previewWorkspace');
+        const brushSizeSlider = document.getElementById('brushSize');
+        const brushSizeValue = document.getElementById('brushSizeValue');
+        const maskOpacitySlider = document.getElementById('maskOpacity');
+        const maskOpacityValue = document.getElementById('maskOpacityValue');
+        const cursorPreview = document.getElementById('cursorPreview');
+        const brushBtn = document.getElementById('brushBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+
+        // Photo Upload Handler
+        photoUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                originalFileName = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Set canvas dimensions with scaling
+                        const maxWidth = 800;
+                        const scale = Math.min(1, maxWidth / img.width);
+                        const width = img.width * scale;
+                        const height = img.height * scale;
+
+                        photoCanvas.width = drawCanvas.width = width;
+                        photoCanvas.height = drawCanvas.height = height;
+
+                        // Draw the photo
+                        photoCtx.drawImage(img, 0, 0, width, height);
+
+                        // Initialize the drawing canvas with transparent background
+                        drawCtx.fillStyle = 'rgba(0, 0, 0, 0)';
+                        drawCtx.fillRect(0, 0, width, height);
+
+                        photoLoaded = true;
+                        uploadSection.style.display = 'none';
+                        drawingWorkspace.classList.add('active');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Tool Selection
+        function selectTool(tool) {
+            currentTool = tool;
+            brushBtn.classList.toggle('active', tool === 'brush');
+            eraserBtn.classList.toggle('active', tool === 'eraser');
+        }
+
+        // Brush Size Control
+        brushSizeSlider.addEventListener('input', function(e) {
+            brushSize = parseInt(e.target.value);
+            brushSizeValue.textContent = brushSize + 'px';
+            updateCursorPreview();
+        });
+
+        // Drawing Event Listeners
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+        drawCanvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch support for mobile devices
+        drawCanvas.addEventListener('touchstart', handleTouch);
+        drawCanvas.addEventListener('touchmove', handleTouch);
+        drawCanvas.addEventListener('touchend', stopDrawing);
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            if (e.type === 'touchstart') {
+                isDrawing = true;
+            }
+            
+            if (isDrawing) {
+                drawAtPosition(x, y);
+            }
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = drawCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            drawAtPosition(x, y);
+        }
+
+        function drawAtPosition(x, y) {
+            drawCtx.beginPath();
+            drawCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
+            
+            if (currentTool === 'brush') {
+                // Draw black circles
+                drawCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+            } else {
+                // Erase mode - remove pixels
+                drawCtx.globalCompositeOperation = 'destination-out';
+                drawCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+            }
+            
+            drawCtx.fill();
+            
+            // Reset composite operation after erasing
+            if (currentTool === 'eraser') {
+                drawCtx.globalCompositeOperation = 'source-over';
+            }
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // Cursor Preview
+        drawCanvas.addEventListener('mousemove', function(e) {
+            cursorPreview.style.display = 'block';
+            cursorPreview.style.left = e.clientX - brushSize / 2 + 'px';
+            cursorPreview.style.top = e.clientY - brushSize / 2 + 'px';
+            updateCursorPreview();
+        });
+
+        drawCanvas.addEventListener('mouseout', function() {
+            cursorPreview.style.display = 'none';
+        });
+
+        function updateCursorPreview() {
+            cursorPreview.style.width = brushSize + 'px';
+            cursorPreview.style.height = brushSize + 'px';
+            cursorPreview.style.borderColor = currentTool === 'brush' ? '#ffd700' : '#ff4444';
+        }
+
+        // Clear Drawing
+        function clearDrawing() {
+            if (confirm('Are you sure you want to clear everything?')) {
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            }
+        }
+
+        // Create Mask Function
+        function createMask() {
+            // Get the user's drawing as image data
+            const drawingData = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+            
+            // Create mask canvas with same dimensions
+            maskCanvas.width = drawCanvas.width;
+            maskCanvas.height = drawCanvas.height;
+            photoCanvas2.width = drawCanvas.width;
+            photoCanvas2.height = drawCanvas.height;
+
+            // Copy photo to preview canvas
+            photoCtx2.drawImage(photoCanvas, 0, 0);
+
+            // Create mask: black background with transparent cutouts where user drew
+            const maskData = maskCtx.createImageData(drawCanvas.width, drawCanvas.height);
+            
+            for (let i = 0; i < drawingData.data.length; i += 4) {
+                // Check if pixel was drawn by user (has black color with alpha > 0)
+                const alpha = drawingData.data[i + 3];
+                
+                if (alpha > 0) {
+                    // User drew here -> make transparent (cutout for taillights)
+                    maskData.data[i] = 0;       // R
+                    maskData.data[i + 1] = 0;   // G
+                    maskData.data[i + 2] = 0;   // B
+                    maskData.data[i + 3] = 0;   // A (transparent)
+                } else {
+                    // User didn't draw here -> make opaque black
+                    maskData.data[i] = 0;       // R
+                    maskData.data[i + 1] = 0;   // G
+                    maskData.data[i + 2] = 0;   // B
+                    maskData.data[i + 3] = 255; // A (opaque black)
+                }
+            }
+
+            maskCtx.putImageData(maskData, 0, 0);
+            maskImageData = maskData;
+
+            // Switch to preview mode
+            drawingWorkspace.classList.remove('active');
+            previewWorkspace.classList.add('active');
+
+            // Reset opacity slider to full visibility
+            maskOpacitySlider.value = 100;
+            updateMaskOpacity();
+        }
+
+        // Mask Opacity Control
+        maskOpacitySlider.addEventListener('input', updateMaskOpacity);
+
+        function updateMaskOpacity() {
+            const opacity = maskOpacitySlider.value / 100;
+            maskCanvas.style.opacity = opacity;
+            maskOpacityValue.textContent = maskOpacitySlider.value + '%';
+        }
+
+        // Back to Drawing Mode
+        function backToDrawing() {
+            previewWorkspace.classList.remove('active');
+            drawingWorkspace.classList.add('active');
+        }
+
+        // Download Mask as PNG
+        function downloadMask() {
+            if (!maskImageData) {
+                alert('No mask available to download');
+                return;
+            }
+
+            // Create a temporary canvas for export
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = maskCanvas.width;
+            exportCanvas.height = maskCanvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            // Put the mask data on the export canvas
+            exportCtx.putImageData(maskImageData, 0, 0);
+
+            // Convert to blob and trigger download
+            exportCanvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalFileName + '_mask.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                // Show success message
+                alert('✅ Mask successfully downloaded as: ' + originalFileName + '_mask.png');
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
