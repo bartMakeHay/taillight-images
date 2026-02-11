@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Volkswagen Golf MK7",
+    "brand": "Volkswagen",
+    "model": "Golf MK7",
+    "photoUrl": "https://github.com/bartMakeHay/taillight-images/raw/refs/heads/main/cars/HIMOD_VW_MK7_MK7.5_Tail_Lights3_480x480.jxl",
+    "maskUrl": "https://github.com/bartMakeHay/taillight-images/raw/refs/heads/main/cars/HIMOD_VW_MK7_MK7.5_Tail_Lights3_480x480.png",
+    "alternatives": [
+      "Volkswagen Golf",
+      "Golf"
+    ]
+  }
+]
