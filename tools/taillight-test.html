@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taillight Challenge - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            max-width: 600px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .car-container {
+            position: relative;
+            width: 800px;
+            max-width: 90vw;
+            margin: 20px 0;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .car-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .base-image {
+            position: relative;
+        }
+
+        .dark-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.3s ease;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            width: 800px;
+            max-width: 90vw;
+            margin-top: 20px;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff4444;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff4444;
+            cursor: pointer;
+            border: none;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+        }
+
+        .light-percentage {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            color: #aaa;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+        }
+
+        .file-upload label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .file-upload input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #2d5016;
+            color: #90ee90;
+        }
+
+        .status.warning {
+            background: #5a4a1a;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚗 Taillight Challenge - Test Tool</h1>
+    
+    <div class="instructions">
+        <strong>Hoe te gebruiken:</strong>
+        <ol>
+            <li>Upload je originele auto-foto (de volledige foto)</li>
+            <li>Upload je zwarte masker met uitgegumde lichten (PNG met transparantie!)</li>
+            <li>Gebruik de slider om te testen of het effect werkt</li>
+        </ol>
+        <strong>Let op:</strong> Het masker moet een PNG zijn met transparantie op de plekken waar de lichten zitten.
+    </div>
+
+    <div class="controls">
+        <div class="file-upload">
+            <label for="baseImage">Originele auto-foto:</label>
+            <input type="file" id="baseImage" accept="image/*">
+        </div>
+
+        <div class="file-upload">
+            <label for="maskImage">Zwart masker (PNG met transparantie):</label>
+            <input type="file" id="maskImage" accept="image/png">
+        </div>
+
+        <div id="uploadStatus"></div>
+    </div>
+
+    <div class="car-container" id="carContainer" style="display: none;">
+        <img id="baseImg" class="base-image" src="" alt="Auto">
+        <img id="maskImg" class="dark-mask" src="" alt="Masker">
+    </div>
+
+    <div class="controls" id="sliderControls" style="display: none;">
+        <div class="slider-container">
+            <label for="lightSlider">Licht niveau:</label>
+            <input type="range" id="lightSlider" min="0" max="100" value="0">
+        </div>
+
+        <div class="light-percentage">
+            <span id="percentage">0%</span> licht
+        </div>
+
+        <div class="score-display">
+            Potentiële score: <span id="score">100</span> punten
+        </div>
+    </div>
+
+    <script>
+        const baseImageInput = document.getElementById('baseImage');
+        const maskImageInput = document.getElementById('maskImage');
+        const baseImg = document.getElementById('baseImg');
+        const maskImg = document.getElementById('maskImg');
+        const carContainer = document.getElementById('carContainer');
+        const sliderControls = document.getElementById('sliderControls');
+        const lightSlider = document.getElementById('lightSlider');
+        const percentageDisplay = document.getElementById('percentage');
+        const scoreDisplay = document.getElementById('score');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        let baseImageLoaded = false;
+        let maskImageLoaded = false;
+        let maxLightLevelReached = 0; // Track hoogste licht niveau ooit bereikt
+
+        function updateStatus() {
+            if (baseImageLoaded && maskImageLoaded) {
+                uploadStatus.className = 'status success';
+                uploadStatus.textContent = '✓ Beide afbeeldingen geladen! Gebruik de slider hieronder.';
+                carContainer.style.display = 'block';
+                sliderControls.style.display = 'block';
+            } else if (baseImageLoaded || maskImageLoaded) {
+                uploadStatus.className = 'status warning';
+                uploadStatus.textContent = '⚠ Upload beide afbeeldingen om te testen';
+            }
+        }
+
+        baseImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    baseImg.src = event.target.result;
+                    baseImageLoaded = true;
+                    updateStatus();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        maskImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.type.includes('png')) {
+                    uploadStatus.className = 'status warning';
+                    uploadStatus.textContent = '⚠ Let op: Masker moet een PNG zijn voor transparantie!';
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    maskImg.src = event.target.result;
+                    maskImageLoaded = true;
+                    updateStatus();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        lightSlider.addEventListener('input', function(e) {
+            const lightLevel = parseInt(e.target.value);
+            
+            // Track het hoogste licht niveau ooit bereikt
+            if (lightLevel > maxLightLevelReached) {
+                maxLightLevelReached = lightLevel;
+            }
+            
+            // Bereken opacity: bij 0% licht = opacity 1 (volledig zwart)
+            // bij 100% licht = opacity 0.5 (half transparant - auto blijft half donker)
+            const opacity = 1 - (lightLevel / 100 * 0.5);
+            maskImg.style.opacity = opacity;
+            
+            // Update percentage display
+            percentageDisplay.textContent = lightLevel;
+            
+            // Bereken score exponentieel: punten dalen sneller naarmate je meer licht toevoegt
+            // Formule: 100 * (0.9 ^ (maxLightLevelReached / 10))
+            // Dit geeft een exponentiële curve van 100 punten naar ~35 punten
+            const score = Math.round(100 * Math.pow(0.9, maxLightLevelReached / 10));
+            scoreDisplay.textContent = score;
+            
+            // Visuele feedback als slider terug wordt geschoven
+            if (lightLevel < maxLightLevelReached) {
+                percentageDisplay.style.color = '#888';
+                percentageDisplay.textContent = lightLevel + ' (max: ' + maxLightLevelReached + ')';
+            } else {
+                percentageDisplay.style.color = '#aaa';
+                percentageDisplay.textContent = lightLevel;
+            }
+        });
+    </script>
+</body>
+</html>
